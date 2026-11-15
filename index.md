@@ -19,7 +19,6 @@ jupyter:
   nbformat_minor: 5
 ---
 
-::: {#aca2_c01 .cell .markdown id="aca2_c01"}
 # Aplicación de Machine Learning con Python · Adult Income
 
 ### ¿Podemos predecir con precisión y equidad quién supera los USD 50,000 al año? Del análisis exploratorio a la decisión con modelos supervisados
@@ -41,9 +40,7 @@ Docente: Carlos Mario Minu Quiroga
 | Jhonathan Correa Valencia | Administrador de empresas | Pereira | Traducción de falsos positivos/negativos a costos de negocio, selección estratégica del modelo y equidad |
 
 > **Convención numérica:** el notebook conserva punto decimal y coma como separador de miles (igual que las salidas de Python y que el ACA 1), por ejemplo `48,790` filas y `23.94 %`.
-:::
 
-::: {#aca2_c02 .cell .markdown id="aca2_c02"}
 ## Resumen ejecutivo
 
 Retomamos los **48,790 registros limpios** del censo de EE. UU. de 1994 (*Adult Income*) auditados en el ACA 1 para resolver un problema de **clasificación binaria supervisada**: predecir si el ingreso anual de una persona adulta supera los USD 50,000 (`ingreso_alto = 1`, **23.94 %** de la muestra) o no (`ingreso_alto = 0`, **76.06 %**).
@@ -52,9 +49,7 @@ Retomamos los **48,790 registros limpios** del censo de EE. UU. de 1994 (*Adult 
 2.  **Entrenamiento y comparación de cuatro familias de modelos:** mediante validación cruzada estratificada de 5 pliegues (`StratifiedKFold`) entrenamos y comparamos **Regresión Logística** (`class_weight='balanced'`), **Árbol de Decisión** (`class_weight='balanced'`), **Random Forest** (`class_weight='balanced_subsample'`) y **Gradient Boosting (`HistGradientBoostingClassifier`)**.
 3.  **Selección del modelo ganador sustentada en evidencia:** **Gradient Boosting** obtiene el mejor desempeño integral en prueba (**ROC-AUC = 0.960**, **PR-AUC = 0.899**, **F1-Score = 0.800** y **Accuracy = 90.7 %**), superando a los modelos lineales y a los árboles individuales al capturar automáticamente interacciones no lineales (edad × horas y educación × ocupación).
 4.  **Interpretación crítica y decisión de negocio:** la importancia por permutación confirma que `marital_status`, `education_num`, `log_capital_gain`, `age` y `occupation` concentran la señal predictiva. Además, demostramos cómo calibrar el umbral de probabilidad según el costo de los **falsos positivos** (riesgo crediticio o gasto comercial mal asignado) frente a los **falsos negativos** (costo de oportunidad al perder clientes de alto valor).
-:::
 
-::: {#aca2_c03 .cell .markdown id="aca2_c03"}
 ## Contenido
 
 1.  Definición del problema, contexto del dataset y justificación del tipo de tarea
@@ -67,9 +62,6 @@ Retomamos los **48,790 registros limpios** del censo de EE. UU. de 1994 (*Adult 
 8.  Comparación argumentada entre modelos y selección del modelo final
 9.  Interpretabilidad: importancia de variables, discusión de errores (FP vs. FN) y aplicaciones por perfil profesional
 10. Limitaciones, ética algorítmica, reproducibilidad y conclusiones
-:::
-
-::: {#aca2_c04 .cell .markdown id="aca2_c04"}
 
 ------------------------------------------------------------------------
 
@@ -93,18 +85,13 @@ Sin embargo, una regla descriptiva simple (como segmentar solo a «casados/as co
 | **Riesgo de crédito** | Complementar la validación de capacidad de pago estimando la probabilidad de pertenecer al segmento de altos ingresos cuando los soportes son parciales. |
 | **Políticas de empleo y formación** | Simular cómo cambia la probabilidad de superar el umbral de ingresos al completar niveles educativos o transitar hacia ocupaciones técnicas/directivas. |
 | **Auditoría de talento y equidad** | Detectar si las decisiones automatizadas penalizan desproporcionadamente a subgrupos demográficos mediante el análisis de falsos negativos por clase. |
-:::
-
-::: {#aca2_c05 .cell .markdown id="aca2_c05"}
 
 ------------------------------------------------------------------------
 
 # 2. Configuración del entorno
 
 > **Lente · Diseño multimedia (Luisa).** Mantenemos la paleta *Okabe-Ito* del ACA 1 (apta para daltonismo) y una jerarquía visual limpia: azul (`#0072B2`) para la clase `<=50K` o métricas de precisión, naranja/rojo (`#E69F00` / `#D55E00`) para destacar la clase `>50K` y el modelo ganador, y verde (`#009E73`) para sensibilidad (*Recall*).
-:::
 
-:::: {#aca2_c06 .cell .code execution_count="1" id="aca2_c06"}
 ``` python
 # --- Librerías de datos y visualización
 import pandas as pd
@@ -149,13 +136,8 @@ print(f"pandas {pd.__version__} | numpy {np.__version__} | scikit-learn {sklearn
 print(f"Semilla de reproducibilidad fijada en: {SEMILLA}")
 ```
 
-::: {.output .stream .stdout}
     pandas 2.0.0 | numpy 1.26.3 | scikit-learn 1.4.0 | seaborn 0.12.2
     Semilla de reproducibilidad fijada en: 42
-:::
-::::
-
-::: {#aca2_c07 .cell .markdown id="aca2_c07"}
 
 ------------------------------------------------------------------------
 
@@ -168,9 +150,7 @@ Conservamos exactamente la misma fuente de datos del ACA 1 (descarga directa del
 3.  **Transformación de colas extremas y códigos truncados (*top-coding*):** dado que el 91.7 % de `capital_gain` y el 95.3 % de `capital_loss` son ceros pero existen valores extremos de hasta `99,999` (donde el 100 % gana `>50K`), creamos `log_capital_gain = log(1 + capital_gain)`, `log_capital_loss = log(1 + capital_loss)` y las banderas indicadoras `flag_tope_capital` (`capital_gain == 99999`) y `flag_tope_edad` (`age == 90`).
 
 > **Lente · Ingeniería de sistemas (Camilo y Diego).** Mantenemos el conjunto original intacto en `df_raw`, ejecutamos las transformaciones sobre `df_clean` y cerramos con validaciones automáticas (`assert`) que garantizan que el punto de partida del ACA 2 sea idéntico al cierre del ACA 1.
-:::
 
-::::: {#aca2_c08 .cell .code execution_count="2" id="aca2_c08"}
 ``` python
 # Nombres de las 15 columnas según la documentación oficial de UCI (adult.names)
 columnas = [
@@ -211,24 +191,18 @@ print(f"Prevalencia de ingresos >50K    : {df_clean['ingreso_alto'].mean():.2%} 
 df_clean.head(5)
 ```
 
-::: {.output .stream .stdout}
     Dimensiones originales (df_raw) : 48,842 filas × 15 columnas
     Dimensiones limpias (df_clean)  : 48,790 filas × 20 columnas (52 duplicados eliminados)
     Validaciones automáticas (assert): SUPERADAS CON ÉXITO
     Prevalencia de ingresos >50K    : 23.94% (11,680 personas)
-:::
 
-::: {.output .display_data}
-       age    workclass  fnlwgt     education  education_num      marital_status       occupation   relationship   race     sex  capital_gain  capital_loss  hours_per_week native_country income  log_capital_gain  log_capital_loss  flag_tope_capital  flag_tope_edad  ingreso_alto
-    0   40  Federal-gov  333351       HS-grad              9       Never-married     Adm-clerical      Unmarried  White  Female             0             0              40  United-States  <=50K             0.000             0.000                  0               0             0
-    1   64    Local-gov  130982     Doctorate             16       Never-married     Adm-clerical      Own-child  White    Male             0             0              41  United-States   >50K             0.000             0.000                  0               0             1
-    2   29      Private  274154  Some-college             10  Married-civ-spouse            Sales           Wife  White  Female          3103             0              40  United-States  <=50K             8.040             0.000                  0               0             0
-    3   18      Private  308222       HS-grad              9  Married-civ-spouse     Adm-clerical        Husband  White    Male             0             0              40         Canada  <=50K             0.000             0.000                  0               0             0
-    4   55    Local-gov   86037  Some-college             10       Never-married  Exec-managerial  Not-in-family  White    Male             0          2415              41  United-States   >50K             0.000             7.790                  0               0             1
-:::
-:::::
-
-::: {#aca2_c09 .cell .markdown id="aca2_c09"}
+| # | age | workclass | fnlwgt | education | education_num | marital_status | occupation | relationship | race | sex | capital_gain | capital_loss | hours_per_week | native_country | income | log_capital_gain | log_capital_loss | flag_tope_capital | flag_tope_edad | ingreso_alto |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 40 | Federal-gov | 333351 | HS-grad | 9 | Never-married | Adm-clerical | Unmarried | White | Female | 0 | 0 | 40 | United-States | <=50K | 0.000 | 0.000 | 0 | 0 | 0 |
+| 1 | 64 | Local-gov | 130982 | Doctorate | 16 | Never-married | Adm-clerical | Own-child | White | Male | 0 | 0 | 41 | United-States | >50K | 0.000 | 0.000 | 0 | 0 | 1 |
+| 2 | 29 | Private | 274154 | Some-college | 10 | Married-civ-spouse | Sales | Wife | White | Female | 3103 | 0 | 40 | United-States | <=50K | 8.040 | 0.000 | 0 | 0 | 0 |
+| 3 | 18 | Private | 308222 | HS-grad | 9 | Married-civ-spouse | Adm-clerical | Husband | White | Male | 0 | 0 | 40 | Canada | <=50K | 0.000 | 0.000 | 0 | 0 | 0 |
+| 4 | 55 | Local-gov | 86037 | Some-college | 10 | Never-married | Exec-managerial | Not-in-family | White | Male | 0 | 2415 | 41 | United-States | >50K | 0.000 | 7.790 | 0 | 0 | 1 |
 
 ------------------------------------------------------------------------
 
@@ -247,9 +221,6 @@ Un error frecuente al pasar del EDA al modelado es incluir todas las columnas di
 | `workclass`, `marital_status`, `occupation`, `relationship`, `race`, `sex`, `native_country` | **Predictoras categóricas (7 en total)** | Variables nominales que se codificarán mediante `OneHotEncoder(handle_unknown='ignore')`. |
 
 > **Lente · Ingeniería de telecomunicaciones (Johan).** Eliminar `fnlwgt` y `education` aumenta la relación señal/ruido (*SNR*) del vector de entrada, mientras que `log1p` actúa como un compresor logarítmico (ley $\mu$) que permite que tanto un clasificador lineal como un árbol procesen ganancias de capital desde USD 0 hasta USD 99,999 sin saturarse.
-:::
-
-::: {#aca2_c10 .cell .markdown id="aca2_c10"}
 
 ------------------------------------------------------------------------
 
@@ -269,9 +240,7 @@ La variable objetivo presenta una distribución de **76.06 % para la clase `0` (
 
 - **Impacto del desbalance:** un clasificador ingenuo que predijera siempre `"<=50K"` obtendría un engañoso **76.06 % de *Accuracy***, pero tendría **0 % de *Recall*** en la clase de ingresos altos (sería inútil para el negocio).
 - **Justificación de la estrategia elegida:** utilizamos **ponderación inversamente proporcional a la frecuencia de clase (`class_weight='balanced'`)** en Regresión Logística, Árbol de Decisión y Random Forest (`balanced_subsample`), penalizando 3.18 veces más los errores cometidos sobre personas de ingresos altos, y comparamos este enfoque frente a la calibración probabilística nativa de **Gradient Boosting**, complementada en la sección 9 con la **optimización explícita del umbral de decisión**.
-:::
 
-::::: {#aca2_c11 .cell .code execution_count="3" id="aca2_c11"}
 ``` python
 # 1. Definición explícita de variables predictoras (features) y variable objetivo (target)
 features_numericas = [
@@ -327,20 +296,13 @@ print(f"Prueba final  (X_test) : {X_test.shape[0]:,} filas | Tasa >50K = {y_test
 print(f"Columnas tras OneHotEncoder (ajustado solo en X_train): {X_train_prep_shape[1]} features numéricas listas para modelado")
 ```
 
-::: {.output .stream .stdout}
     Variables predictoras seleccionadas: 7 numéricas + 7 categóricas = 14 columnas
     Variables descartadas (evidencia ACA 1): 'fnlwgt' (ruido muestral), 'education' (redundante con education_num), 'income' (target)
     Entrenamiento (X_train): 39,032 filas | Tasa >50K = 23.94%
     Prueba final  (X_test) : 9,758 filas | Tasa >50K = 23.94%
     Columnas tras OneHotEncoder (ajustado solo en X_train): 55 features numéricas listas para modelado
-:::
 
-::: {.output .display_data}
 ![](5f816de3723d39db3ccafeab25399c9c8cd217ed.png)
-:::
-:::::
-
-::: {#aca2_c12 .cell .markdown id="aca2_c12"}
 
 ------------------------------------------------------------------------
 
@@ -352,9 +314,7 @@ Para cubrir distintas hipótesis inductivas y niveles de complejidad algorítmic
 2.  **Modelo 2 · Árbol de Decisión (`DecisionTreeClassifier`):** modelo no paramétrico que divide recursivamente el espacio de variables mediante cortes ortogonales que minimizan la impureza de Gini. Se parametriza con `max_depth=8` y `min_samples_leaf=50` para obtener reglas generalizables y evitar que memorice hojas con pocos individuos.
 3.  **Modelo 3 · Random Forest (`RandomForestClassifier`):** ensamble paralelo (*Bagging*) compuesto por 150 árboles de decisión entrenados sobre muestras *bootstrap* e inyección aleatoria de subconjuntos de variables en cada nodo (`max_depth=14`, `min_samples_leaf=20`). Reduce drásticamente la varianza e inestabilidad del árbol individual.
 4.  **Modelo 4 · Gradient Boosting (`HistGradientBoostingClassifier`):** ensamble secuencial (*Boosting*) basado en histogramas, donde cada nuevo árbol se entrena para corregir los errores residuales (gradiente de la pérdida logarítmica) de los árboles previos (`max_iter=200`, `learning_rate=0.08`, `max_leaf_nodes=31`). Es el algoritmo de referencia en ciencia de datos aplicada para datos tabulares con interacciones complejas.
-:::
 
-::::: {#aca2_c13 .cell .code execution_count="4" id="aca2_c13"}
 ``` python
 # Definición de los 4 modelos a entrenar y comparar
 modelos_base = {
@@ -406,21 +366,15 @@ print("Resultados en Validación Cruzada Estratificada (5 pliegues sobre X_train
 display(df_cv)
 ```
 
-::: {.output .stream .stdout}
     Resultados en Validación Cruzada Estratificada (5 pliegues sobre X_train = 39,032 filas):
-:::
 
-::: {.output .display_data}
-                            Accuracy (CV)  Precision >50K (CV)  Recall >50K (CV)  F1-Score (CV)  ROC-AUC (CV)  PR-AUC (CV)
-    Modelo                                                                                                                
-    1. Regresión Logística  85.51 ± 0.47%                0.647             0.871          0.742         0.939        0.839
-    2. Árbol de Decisión    85.86 ± 2.21%                0.675             0.816          0.736         0.930        0.799
-    3. Random Forest        86.22 ± 0.52%                0.657             0.889          0.755         0.946        0.866
-    4. Gradient Boosting    90.57 ± 0.32%                0.828             0.765          0.795         0.959        0.897
-:::
-:::::
+| Modelo | Accuracy (CV) | Precision >50K (CV) | Recall >50K (CV) | F1-Score (CV) | ROC-AUC (CV) | PR-AUC (CV) |
+|---|---|---|---|---|---|---|
+| 1. Regresión Logística | 85.51 ± 0.47% | 0.647 | 0.871 | 0.742 | 0.939 | 0.839 |
+| 2. Árbol de Decisión | 85.86 ± 2.21% | 0.675 | 0.816 | 0.736 | 0.930 | 0.799 |
+| 3. Random Forest | 86.22 ± 0.52% | 0.657 | 0.889 | 0.755 | 0.946 | 0.866 |
+| 4. Gradient Boosting | 90.57 ± 0.32% | 0.828 | 0.765 | 0.795 | 0.959 | 0.897 |
 
-::: {#aca2_c14 .cell .markdown id="aca2_c14"}
 **Lectura de la validación cruzada.**
 
 - La desviación estándar entre los 5 pliegues es muy baja en los modelos de ensamble ($\pm 0.32	ext{ \%}$ en Gradient Boosting y $\pm 0.52	ext{ \%}$ en Random Forest), frente a $\pm 2.21	ext{ \%}$ en el Árbol de Decisión individual. Esto demuestra empíricamente cómo el *Bagging* y el *Boosting* estabilizan la varianza de los árboles.
@@ -439,9 +393,7 @@ No basta con reportar números; cada métrica responde una pregunta distinta del
 - **Recall en `>50K` (Sensibilidad / Tasa de Verdaderos Positivos):** de todas las personas que realmente ganan más de USD 50,000 en el censo, ¿qué porcentaje logra **detectar** el modelo? Es la métrica crítica cuando no queremos dejar escapar prospectos valiosos (evitar *Falsos Negativos*).
 - **F1-Score en `>50K`:** media armónica entre *Precision* y *Recall*. Penaliza los extremos y resume en un solo indicador el desempeño sobre la clase minoritaria.
 - **ROC-AUC y PR-AUC:** evalúan la calidad de las probabilidades entregadas por el modelo en todos los umbrales posibles. Ante clases desbalanceadas, **PR-AUC (*Precision-Recall AUC*)** es especialmente exigente porque se enfoca en la clase minoritaria `>50K` sin inflarse por el gran volumen de verdaderos negativos.
-:::
 
-::::::: {#aca2_c15 .cell .code execution_count="5" id="aca2_c15"}
 ``` python
 # Evaluación de los 4 pipelines sobre el conjunto de prueba aislado (X_test = 9,758 registros)
 resultados_test = []
@@ -511,29 +463,19 @@ plt.tight_layout()
 plt.show()
 ```
 
-::: {.output .stream .stdout}
     Desempeño comparativo en el Conjunto de Prueba (9,758 registros no vistos en entrenamiento):
-:::
 
-::: {.output .display_data}
-                            Accuracy  Precision (>50K)  Recall (>50K)  F1-Score (>50K)  ROC-AUC  PR-AUC  VN (TN)    FP   FN  VP (TP)
-    Modelo                                                                                                                          
-    1. Regresión Logística     0.857             0.648          0.883            0.747    0.939   0.840     6300  1122  273     2063
-    2. Árbol de Decisión       0.874             0.710          0.803            0.754    0.931   0.796     6657   765  460     1876
-    3. Random Forest           0.865             0.660          0.899            0.761    0.947   0.868     6339  1083  237     2099
-    4. Gradient Boosting       0.907             0.826          0.774            0.800    0.960   0.899     7042   380  527     1809
-:::
+| Modelo | Accuracy | Precision (>50K) | Recall (>50K) | F1-Score (>50K) | ROC-AUC | PR-AUC | VN (TN) | FP | FN | VP (TP) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1. Regresión Logística | 0.857 | 0.648 | 0.883 | 0.747 | 0.939 | 0.840 | 6300 | 1122 | 273 | 2063 |
+| 2. Árbol de Decisión | 0.874 | 0.710 | 0.803 | 0.754 | 0.931 | 0.796 | 6657 | 765 | 460 | 1876 |
+| 3. Random Forest | 0.865 | 0.660 | 0.899 | 0.761 | 0.947 | 0.868 | 6339 | 1083 | 237 | 2099 |
+| 4. Gradient Boosting | 0.907 | 0.826 | 0.774 | 0.800 | 0.960 | 0.899 | 7042 | 380 | 527 | 1809 |
 
-::: {.output .display_data}
 ![](6a3223d85e34c4a090de36e7e33e94e9c1507fe1.png)
-:::
 
-::: {.output .display_data}
 ![](6bc5447d4b90d02f708b33908d3ad1859c27d5bc.png)
-:::
-:::::::
 
-::: {#aca2_c16 .cell .markdown id="aca2_c16"}
 **Interpretación de las visualizaciones en el conjunto de prueba.**
 
 1.  **Lectura de las Matrices de Confusión:** de los 9,758 adultos de prueba, **7,422 pertenecen a `<=50K`** y **2,336 pertenecen a `>50K`**.
@@ -557,9 +499,7 @@ plt.show()
 ------------------------------------------------------------------------
 
 # 9. Interpretabilidad: importancia de variables, discusión de errores y aplicaciones por perfil
-:::
 
-::::: {#aca2_c17 .cell .code execution_count="6" id="aca2_c17"}
 ``` python
 # 1. Métricas desglosadas por clase para el modelo seleccionado (Gradient Boosting)
 modelo_ganador = pipelines_entrenados["4. Gradient Boosting"]
@@ -606,7 +546,6 @@ plt.tight_layout()
 plt.show()
 ```
 
-::: {.output .stream .stdout}
     Reporte detallado de métricas por clase · Modelo Seleccionado (4. Gradient Boosting):
 
                      precision    recall  f1-score   support
@@ -617,14 +556,9 @@ plt.show()
            accuracy                          0.907      9758
           macro avg      0.878     0.862     0.870      9758
        weighted avg      0.905     0.907     0.906      9758
-:::
 
-::: {.output .display_data}
 ![](9ea7891845da73955c64151c69cb5a57ccc34409.png)
-:::
-:::::
 
-::: {#aca2_c18 .cell .markdown id="aca2_c18"}
 ## 9.1 Interpretación de la importancia de variables y del umbral de decisión
 
 - **Conexión directa con las hipótesis del ACA 1:** el gráfico de importancia por permutación confirma que las variables que más sostienen el poder predictivo del modelo en datos no vistos son **`marital_status`, `education_num`, `occupation`, `age`, `log_capital_gain` y `hours_per_week`**. Las banderas de truncamiento y las variables demográficas secundarias (`race`, `native_country`) aportan ajustes marginales.
@@ -666,4 +600,3 @@ plt.show()
   - Becker, B. & Kohavi, R. (1996). *Adult* \[Dataset\]. UCI Machine Learning Repository. <https://doi.org/10.24432/C5XW20>
   - Pedregosa, F. et al. (2011). Scikit-learn: Machine Learning in Python. *Journal of Machine Learning Research*, 12, 2825--2830.
   - Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. *Annals of Statistics*, 29(5), 1189--1232.
-:::
